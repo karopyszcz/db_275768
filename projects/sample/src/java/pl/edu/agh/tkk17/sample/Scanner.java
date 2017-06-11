@@ -11,6 +11,7 @@ public class Scanner implements Iterator<Token>, Iterable<Token>
     private int position;
     private char character;
     private boolean end;
+    private String num;
 
     public Scanner(InputStream input)
     {
@@ -18,6 +19,7 @@ public class Scanner implements Iterator<Token>, Iterable<Token>
         this.position = -1;
         this.end = false;
         this.readChar();
+        this.num = "";
     }
 
     private void readChar()
@@ -55,13 +57,35 @@ public class Scanner implements Iterator<Token>, Iterable<Token>
         } else if (character == '*') {
             token = this.makeToken(TokenType.MUL);
             this.readChar();
-        } else if (character >= '0' && character <= '9') {
-            String value = String.valueOf(character);
-            token = this.makeToken(TokenType.NUM, value);
+        } else if (character == '-') {
+            token = this.makeToken(TokenType.SUB);
             this.readChar();
+        } else if (character == '/') {
+            token = this.makeToken(TokenType.DIV);
+            this.readChar();
+        } else if (character == '(') {
+            token = this.makeToken(TokenType.LBR);
+            this.readChar();
+        } else if (character == ')') {
+            token = this.makeToken(TokenType.RBR);
+            this.readChar();
+        } else if ((character >= '0' && character <= '9') || character =='.') {
+            String value = String.valueOf(character);
+            num += value;
+
+            this.readChar();
+            if(Character.isDigit(this.character) || this.character == '.') {
+                token = this.next();
+            }else{
+                token = makeToken(TokenType.NUM, num);
+                num = "";
+            }
         } else if (character == '\n' || character == '\u0000') {
             token = this.makeToken(TokenType.END);
             this.readChar();
+        } else if (character == ' ') {
+            this.readChar();
+            token = this.next();
         } else {
             String location = this.locate(this.position);
             throw new UnexpectedCharacterException(character, location);

@@ -44,13 +44,37 @@ public class Parser
         return new NodeNumber(value);
     }
 
+    private Node parseFactor(){
+        if(this.check(TokenType.LBR)){
+            this.forward();
+            Node expr = this.parseExpression();
+            if(!this.check(TokenType.RBR)) {
+                throw new UnexpectedTokenException(this.ctoken);
+            }else{
+                this.forward();
+                return expr;
+            }
+        }
+        return this.parseNumber();
+    }
+	
+    public static Node parse(Iterable<Token> tokens)
+    {
+        Parser parser = new Parser(tokens);
+        return parser.parseProgram();
+    }
+	
     private Node parseTerm()
     {
-        Node left = this.parseNumber();
+        Node left = this.parseFactor();
         if (this.check(TokenType.MUL)) {
             this.forward();
             Node right = this.parseTerm();
             return new NodeMul(left, right);
+        } else if (this.check(TokenType.DIV)) {
+            this.forward();
+            Node right = this.parseTerm();
+            return new NodeDiv(left, right);
         } else {
             return left;
         }
@@ -63,6 +87,10 @@ public class Parser
             this.forward();
             Node right = this.parseExpression();
             return new NodeAdd(left, right);
+        } else if (this.check(TokenType.SUB)) {
+            this.forward();
+            Node right = this.parseExpression();
+            return new NodeSub(left, right);
         } else {
             return left;
         }
@@ -72,13 +100,6 @@ public class Parser
     {
         Node root = this.parseExpression();
         this.expect(TokenType.END);
-        return root;
-    }
-
-    public static Node parse(Iterable<Token> tokens)
-    {
-        Parser parser = new Parser(tokens);
-        Node root = parser.parseProgram();
         return root;
     }
 }
